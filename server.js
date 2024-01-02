@@ -2,7 +2,7 @@ var express = require("express");
 var app = express();
 app.use(express.json()); 
 
-const userRoutes = require('./_userRoutes').router;
+const userRoutes = require('./routes/_userRoutes').router;
 app.use(userRoutes);
 
 // Define a port to listen to
