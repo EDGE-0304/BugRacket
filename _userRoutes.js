@@ -81,6 +81,61 @@ router.post('/users/login', async (req, res) => {
     }
 });
 
+
+router.put("/users/update-avatar", upload.single('image'), async (req, res) => {
+    //Update user avatar if the user exists and the image file is provided
+    try {
+        const userName = req.body.name;
+
+        if (!userName) {  // Ensure the userId is provided for updates
+            res.status(400).send("User name must be provided.");
+            return;
+        }
+
+        if (!(await userExists(userName))) {
+            res.status(400).send("User does not exist.");
+            return;
+        }
+
+        if (!req.file) {
+            console.log("User avatar was not provided.");
+            res.status(400).send("User avatar was not provided.");
+            return;
+        } 
+        
+        const fullPath = path.join(__dirname, 'uploads', path.basename(req.file.path));
+        const img = fs.readFileSync(fullPath);
+        const encode_image = img.toString('base64');
+        var finalAvatar = {
+            contentType: req.file.mimetype,
+            image: Buffer.from(encode_image, 'base64')
+        };
+
+
+        const updateFields = {};
+        updateFields.userAvatar = finalAvatar;
+
+        console.log("User Avatar received");
+
+        const result = await mongoClient.db("BugRacket").collection("users").updateOne(
+            { userName }, 
+            { $set: updateFields }
+        );
+
+        if (result.modifiedCount === 0) {  // If no changes were made
+            res.status(200).send("No changes made to user avatar.");
+            return;
+        }
+
+        res.status(200).send("User avatar updated successfully.");
+        console.log("User avatar updated successfully.");
+
+    } catch (err) {
+        console.log('Internal server error');
+        res.status(500).send("Internal server error");
+    }
+});
+
 const checkValidUser = async (user) => {
     // Validate the required fields for the user
     if (!user.email || !user.password || !user.name) {
@@ -99,6 +154,14 @@ const checkValidUser = async (user) => {
         return false;
     }
     return true;
+}
+
+async function userExists(userName) {
+    console.log("Checking if user exists:", userName);
+    const user = await mongoClient.db(MappostDB).collection("users").findOne({ userName });
+    const exists = user !== null;
+    console.log(`User ${userName} exists: ${exists}`);
+    return exists;
 }
     
 module.exports = {
