@@ -12,12 +12,7 @@ const mongoClient = new MongoClient(uri, {
     }
 });
 
-const multer = require('multer');
-const upload = multer({ dest: 'uploads/' });
-const fs = require('fs');
-const path = require('path');
-
-router.post('/users/sign-up', /*upload.single('image'),*/ async (req, res) => {
+router.post('/users/sign-up', async (req, res) => {
     try {
         //Requires email, password, name
         const isValidUser = await checkValidUser(req.body);
@@ -29,22 +24,6 @@ router.post('/users/sign-up', /*upload.single('image'),*/ async (req, res) => {
         const user = req.body;
         if(!user.gender) user.gender = "Unknown";
         if(!user.birthday) user.birthday = "Unknown";
-
-        // var avatar = {
-        //     contentType: "",
-        //     image: ""
-        // }
-        // req.body.userAvatar = avatar;
-        // if (req.file) {
-        //     const fullPath = path.join(__dirname, 'uploads', path.basename(req.file.path));
-        //     const img = fs.readFileSync(fullPath);
-        //     const encode_image = img.toString('base64');
-        
-        //     req.body.userAvatar = {
-        //         contentType: req.file.mimetype,
-        //         image: Buffer.from(encode_image, 'base64')
-        //     };
-        // }
 
         await mongoClient.db("BugRacket").collection("users").insertOne(user);
 
@@ -80,61 +59,6 @@ router.post('/users/login', async (req, res) => {
         res.status(500).send({ success: false, message: 'Error during login', error: error.message });
     }
 });
-
-//Cannot use this avatar upload method
-// router.put("/users/update-avatar", upload.single('image'), async (req, res) => {
-//     //Update user avatar if the user exists and the image file is provided
-//     try {
-//         const userName = req.body.name;
-
-//         if (!userName) {  // Ensure the userId is provided for updates
-//             res.status(400).send("User name must be provided.");
-//             return;
-//         }
-
-//         if (!(await userExists(userName))) {
-//             res.status(400).send("User does not exist.");
-//             return;
-//         }
-
-//         if (!req.file) {
-//             console.log("User avatar was not provided.");
-//             res.status(400).send("User avatar was not provided.");
-//             return;
-//         } 
-        
-//         const fullPath = path.join(__dirname, 'uploads', path.basename(req.file.path));
-//         const img = fs.readFileSync(fullPath);
-//         const encode_image = img.toString('base64');
-//         var finalAvatar = {
-//             contentType: req.file.mimetype,
-//             image: Buffer.from(encode_image, 'base64')
-//         };
-
-
-//         const updateFields = {};
-//         updateFields.userAvatar = finalAvatar;
-
-//         console.log("User Avatar received");
-
-//         const result = await mongoClient.db("BugRacket").collection("users").updateOne(
-//             { userName }, 
-//             { $set: updateFields }
-//         );
-
-//         if (result.modifiedCount === 0) {  // If no changes were made
-//             res.status(200).send("No changes made to user avatar.");
-//             return;
-//         }
-
-//         res.status(200).send("User avatar updated successfully.");
-//         console.log("User avatar updated successfully.");
-
-//     } catch (err) {
-//         console.log('Internal server error');
-//         res.status(500).send("Internal server error");
-//     }
-// });
 
 const checkValidUser = async (user) => {
     // Validate the required fields for the user
