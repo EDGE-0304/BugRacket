@@ -16,7 +16,7 @@ const mongoClient = new MongoClient(uri, {
 
 let db;
 
-
+    
 // Add a basic route for testing the server
 app.get('/', function(req, res){
     res.send('Hello World (First Update)!');
