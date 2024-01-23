@@ -4,9 +4,11 @@ app.use(express.json());
 
 const userRoutes = require('./routes/_userRoutes').router;
 app.use(userRoutes);
+const arduinoRoutes = require('./routes/_arduinoRoutes').router;
+app.use(arduinoRoutes);
 
 // Define a port to listen to
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 8081;
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const uri = "mongodb+srv://EDGEBugRacket:4kqSP0Md2OlEps9k@bugracket.kc2nsam.mongodb.net/?retryWrites=true&w=majority";
 const mongoClient = new MongoClient(uri, {
