@@ -59,3 +59,32 @@ router.get("/arduino/test", async (req, res) => {
         console.error("Internal Server Error");    
     }
 });
+
+
+async function handleMacAddress(macAddress) {
+    try {
+        // Check if the MAC address already exists in the database
+        const existingEntry = await mongoClient.db("DeviceDB").collection("deviceType").findOne({ macAddress: macAddress });
+
+        if (existingEntry) {
+            // MAC address exists, return it
+            console.log("MAC address exists, returning existing entry.");
+            return 2;
+        } else {
+            // MAC address doesn't exist, insert new entry
+            const newEntry = {
+                macAddress: macAddress,
+                deviceType: deviceType,
+            };
+
+            // Insert the new entry into the database
+            await mongoClient.db("DeviceDB").collection("deviceType").insertOne(newEntry);
+
+            console.log("New MAC address added");
+            return 1;
+        }
+    } catch (error) {
+        console.error("Error occurred:", error);
+        return -1;
+    }
+}
