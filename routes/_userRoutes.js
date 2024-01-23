@@ -27,14 +27,7 @@ router.post('/users/sign-up', async (req, res) => {
         if(!user.gender) user.gender = "Unknown";
         if(!user.birthday) user.birthday = "Unknown";
 
-        await mongoClient.db("BugRacket").collection("users").insertOne(user);
-
-        const rackets = {
-            userName: user.name,
-            rackets: [],
-            score: 0,
-        }
-        await mongoClient.db("BugRacket").collection("bugRackets").insertOne(rackets);
+        await mongoClient.db("UserDB").collection("users").insertOne(user);
 
         res.status(201).send({ message: 'Account created successfully'});
 
@@ -48,7 +41,7 @@ router.post('/users/login', async (req, res) => {
     try {
         const { name, password } = req.body;
       
-        const user = await mongoClient.db("BugRacket").collection('users').findOne({ name });
+        const user = await mongoClient.db("UserDB").collection('users').findOne({ name });
         if (user && user.password === password) {
             // Login successful
             res.status(200).send({ success: true, message: 'Login successful' });
@@ -69,8 +62,8 @@ const checkValidUser = async (user) => {
     }
     // Check if the email already exists in the database
     try {
-        const existingName = await mongoClient.db("BugRacket").collection("users").findOne({ name: user.name });
-        const existingEmail = await mongoClient.db("BugRacket").collection("users").findOne({ email: user.email});
+        const existingName = await mongoClient.db("UserDB").collection("users").findOne({ name: user.name });
+        const existingEmail = await mongoClient.db("UserDB").collection("users").findOne({ email: user.email});
         if (existingName || existingEmail) {
             console.error('This user already exists.');
             return false;
@@ -82,12 +75,79 @@ const checkValidUser = async (user) => {
     return true;
 }
 
-async function userExists(userName) {
-    console.log("Checking if user exists:", userName);
-    const user = await mongoClient.db(MappostDB).collection("users").findOne({ userName });
-    const exists = user !== null;
-    console.log(`User ${userName} exists: ${exists}`);
-    return exists;
+router.post('/device/new-device', async (req, res) => {
+    try {
+        const name = req.body.name;
+        const macAddress = req.body.macAddress;
+        const deviceType = req.body.deviceType;
+
+        if(!macAddress || !deviceType) {
+            console.log("Missing device information")
+            res.status(400).send("Missing device information");
+        }
+
+        const device = {
+            macAddress,
+            deviceType,
+        };
+
+        const user = await mongoClient.db("UserDB").collection('users').findOne({ name });
+        if(user) {
+            //user exists in our database
+            //Add new device into database
+            //Ex: macAddress=12345, deviceType=bug-racket, name=FARDREAM
+            let status = await handleMacAddress(macAddress, deviceType, name);
+
+            if(status == 1) {
+                console.log("New MAC address added");
+                res.status(200).send({ message: "New MAC address added", data: device});
+            } else if (status == 2) {
+                console.log("Device already exists");
+                res.status(200).send({ message: "Device already exists", data: device});
+            } else {
+                console.log("Unknown error uploading device");
+                res.status(500).send({ message: "Unknown error uploading device"});
+            }
+            
+        } else {
+            //user does not exist
+            console.log("User does not exist");
+            res.status(400).send({ message: "User does not exist"});
+        }
+
+    } catch (error){
+        console.log("Unknown error uploading device");
+        res.status(500).send({ message: "Unknown error uploading device"});
+    }
+});
+
+async function handleMacAddress(macAddress, deviceType, name) {
+    try {
+        // Check if the MAC address already exists in the database
+        const existingEntry = await mongoClient.db("DeviceDB").collection(deviceType).findOne({ macAddress });
+
+        if (existingEntry) {
+            // MAC address exists, return it
+            console.log("MAC address exists, returning existing entry.");
+            return 2;
+        } else {
+            // MAC address doesn't exist, insert new entry
+            const entry = {
+                owner: name,
+                macAddress,
+                deviceType
+            };
+
+            // Insert the new entry into the database
+            await mongoClient.db("DeviceDB").collection(deviceType).insertOne(entry);
+
+            console.log("New MAC address added");
+            return 1;
+        }
+    } catch (error) {
+        console.error("Error occurred:", error);
+        return -1;
+    }
 }
     
 module.exports = {
