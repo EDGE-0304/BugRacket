@@ -33,11 +33,6 @@ router.post('/device/new-device', async (req, res) => {
             res.status(400).send("Missing device information");
         }
 
-        const device = {
-            macAddress,
-            deviceType,
-        };
-
         const user = await mongoClient.db(UserDB).collection(UserCollection).findOne({ name });
         
         if(user) {
@@ -83,7 +78,8 @@ async function handleMacAddress(macAddress, deviceType, name) {
             const entry = {
                 owner: name,
                 macAddress,
-                deviceType
+                deviceType,
+                deviceName: deviceType
             };
 
             // Insert the new entry into the database
@@ -98,11 +94,49 @@ async function handleMacAddress(macAddress, deviceType, name) {
     }
 }
 
-router.put('device/bugracket/new-kill', async (req, res) => {
-
+router.put('device/bugracket/update-name', async (req, res) => {
     try {
+        let bugracket = req.body;
+
+        if(!bugracket || !bugracket.macAddress) {
+            console.log("Invalid input, missing bugracket macAddress or the whole object");
+            res.status(400).send({ message: "Invalid input, missing bugracket macAddress or the whole object"});
+        }
+
+        let macAddress = bugracket.macAddress;
+        let newName = bugracket.name;
+
+        const device = await mongoClient.db(DeviceDB).collection("bug-racket").findOne({ macAddress });
+
+        if(!device || device.deviceType != "bug-racket") {
+            console.log("Invalid input, bug racket does not exist or not a bug racket");
+            res.status(400).send({ message: "Invalid input, bug racket does not exist or not a bug racket"});
+        }
+
+        const updateResult = await mongoClient.db(DeviceDB).collection("bug-racket").updateOne(
+            { macAddress },
+            { $set: { deviceName: newName } }
+        );
+    
+        if (updateResult.modifiedCount === 0) {
+            res.status(200).send({ message: "Nothing updated" });
+        }
+    
+        res.status(200).send({ message: "Bug racket updated successfully" });
+
+    } catch (error) {
+        console.log("Internal Server Error");
+        res.status(500).send("Internal Server Error");
+    }
+})
+
+
+router.put('device/bugracket/new-kill', async (req, res) => {
+    try {
+        let match;
+
         if (req.is('text/plain')) {
-            timeStamp = req.body;
+            match = req.body;
         } else {
             res.status(400).send("Unsupported content type");
         }
@@ -111,7 +145,6 @@ router.put('device/bugracket/new-kill', async (req, res) => {
         //matches[0] will store the macAddress, matches[1] will store the time stamp
         let regex = /\[([^\]]+)\]/g;
         let matches = [];
-        let match;
         while ((match = regex.exec(str)) !== null) {
             matches.push(match[1]);
         }
