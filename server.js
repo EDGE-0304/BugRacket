@@ -4,7 +4,7 @@ app.use(express.json());
 
 const userRoutes = require('./routes/_userRoutes').router;
 app.use(userRoutes);
-const arduinoRoutes = require('./routes/_arduinoRoutes').router;
+const arduinoRoutes = require('./routes/_deviceRoutes').router;
 app.use(arduinoRoutes);
 
 // Define a port to listen to
