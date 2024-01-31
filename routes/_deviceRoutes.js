@@ -80,14 +80,10 @@ router.get('/device/bugracket/count', async (req, res) => {
             console.log("Kill Count:", count);
             res.status(200).send(`Successfully retrieved kill count: ${count}`);
 
-        }
-
-        else{
+        } else{
             console.log("Error finding device");
             res.status(404).send("Error finding device");
         }
-
-
 
     } catch (error) {
         console.log("Error getting count");
@@ -160,7 +156,6 @@ router.put('device/bugracket/update-name', async (req, res) => {
         res.status(500).send("Internal Server Error");
     }
 })
-
 
 router.put('device/bugracket/new-kill', async (req, res) => {
     try {
