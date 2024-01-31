@@ -129,6 +129,56 @@ async function handleMacAddress(macAddress, deviceType, name) {
     }
 }
 
+router.put('device/bugracket/new-kill', async (req, res) => {
+
+    try {
+        if (req.is('text/plain')) {
+            timeStamp = req.body;
+        } else {
+            res.status(400).send("Unsupported content type");
+        }
+    
+        //GPT generated code to parse keywords,
+        //matches[0] will store the macAddress, matches[1] will store the time stamp
+        let regex = /\[([^\]]+)\]/g;
+        let matches = [];
+        let match;
+        while ((match = regex.exec(str)) !== null) {
+            matches.push(match[1]);
+        }
+    
+        if(matches.length < 2) {
+            console.log("Invalid input, missing macAddress or timeStamp");
+            res.status(400).send({ message: "Invalid input, missing macAddress or timeStamp"});
+        }
+    
+        const macAddress = matches[0];
+        const timeStamp = matches[1];
+    
+        const device = await mongoClient.db(DeviceDB).collection("bug-racket").findOne({ macAddress });
+    
+        if(!matches[0] || !device || device.deviceType != "bug-racket") {
+            console.log("Invalid input, bug racket does not exist or not a bug racket");
+            res.status(400).send({ message: "Invalid input, bug racket does not exist or not a bug racket"});
+        }
+    
+        const updateResult = await mongoClient.db(DeviceDB).collection("bug-racket").updateOne(
+            { macAddress },
+            { $push: { kills: timeStamp } }
+        );
+    
+        if (updateResult.modifiedCount === 0) {
+            res.status(200).send({ message: "Nothing updated" });
+        }
+    
+        res.status(200).send({ message: "Bug racket updated successfully" });
+        
+    } catch (error) {
+        console.log("Internal Server Error");
+        res.status(500).send("Internal Server Error");
+    }
+})
+
 router.post('/arduino/mac', async (req, res) => {
     try {
         let message;
