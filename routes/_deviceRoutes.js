@@ -21,6 +21,7 @@ const UserCollection = "users"
 
 const DeviceDB = "DeviceDB"
 //Possible device BugRacket, SmartSwitch
+const bugracketCollection = "bug-racket"
 
 router.post('/device/new-device', async (req, res) => {
     try {
@@ -64,37 +65,10 @@ router.post('/device/new-device', async (req, res) => {
     }
 });
 
-router.get('/device/bugracket/count', async (req, res) => {
-
-    try {
-        
-        let macAddress = req.body;
-
-        console.log('macAddress: ', macAddress);
-
-        const existingmacAddress = await mongoClient.db(DeviceDB).collection(bug-racket).findOne({ macAddress});
-
-        if(existingmacAddress){
-
-            let count =  existingmacAddress.kills.length;
-            console.log("Kill Count:", count);
-            res.status(200).send(`Successfully retrieved kill count: ${count}`);
-
-        } else{
-            console.log("Error finding device");
-            res.status(404).send("Error finding device");
-        }
-
-    } catch (error) {
-        console.log("Error getting count");
-        res.status(500).send("Error getting count");
-    }
-});
-
 async function handleMacAddress(macAddress, deviceType, name) {
     try {
         // Check if the MAC address already exists in the database
-        const existingEntry = await mongoClient.db(DeviceDB).collection("deviceType").findOne({ macAddress });
+        const existingEntry = await mongoClient.db(DeviceDB).collection(deviceType).findOne({ macAddress });
 
         if (existingEntry) {
             // MAC address exists, return it
@@ -121,6 +95,30 @@ async function handleMacAddress(macAddress, deviceType, name) {
     }
 }
 
+router.get('/device/bugracket/count', async (req, res) => {
+    try {
+        let macAddress = req.body;
+        console.log('macAddress: ', macAddress);
+
+        const existingmacAddress = await mongoClient.db(DeviceDB).collection(bugracketCollection).findOne({ macAddress});
+
+        if(existingmacAddress){
+
+            let count =  existingmacAddress.kills.length;
+            console.log("Kill Count:", count);
+            res.status(200).send(`Successfully retrieved kill count: ${count}`);
+
+        } else{
+            console.log("Error finding device");
+            res.status(404).send("Error finding device");
+        }
+
+    } catch (error) {
+        console.log("Error getting count");
+        res.status(500).send("Error getting count");
+    }
+});
+
 router.put('device/bugracket/update-name', async (req, res) => {
     try {
         let bugracket = req.body;
@@ -133,14 +131,14 @@ router.put('device/bugracket/update-name', async (req, res) => {
         let macAddress = bugracket.macAddress;
         let newName = bugracket.name;
 
-        const device = await mongoClient.db(DeviceDB).collection("bug-racket").findOne({ macAddress });
+        const device = await mongoClient.db(DeviceDB).collection(bugracketCollection).findOne({ macAddress });
 
-        if(!device || device.deviceType != "bug-racket") {
+        if(!device || device.deviceType != bugracketCollection) {
             console.log("Invalid input, bug racket does not exist or not a bug racket");
             res.status(400).send({ message: "Invalid input, bug racket does not exist or not a bug racket"});
         }
 
-        const updateResult = await mongoClient.db(DeviceDB).collection("bug-racket").updateOne(
+        const updateResult = await mongoClient.db(DeviceDB).collection(bugracketCollection).updateOne(
             { macAddress },
             { $set: { deviceName: newName } }
         );
@@ -183,14 +181,14 @@ router.put('device/bugracket/new-kill', async (req, res) => {
         const macAddress = matches[0];
         const timeStamp = matches[1];
     
-        const device = await mongoClient.db(DeviceDB).collection("bug-racket").findOne({ macAddress });
+        const device = await mongoClient.db(DeviceDB).collection(bugracketCollection).findOne({ macAddress });
     
-        if(!matches[0] || !device || device.deviceType != "bug-racket") {
+        if(!matches[0] || !device || device.deviceType != bugracketCollection) {
             console.log("Invalid input, bug racket does not exist or not a bug racket");
             res.status(400).send({ message: "Invalid input, bug racket does not exist or not a bug racket"});
         }
     
-        const updateResult = await mongoClient.db(DeviceDB).collection("bug-racket").updateOne(
+        const updateResult = await mongoClient.db(DeviceDB).collection(bugracketCollection).updateOne(
             { macAddress },
             { $push: { kills: timeStamp } }
         );
