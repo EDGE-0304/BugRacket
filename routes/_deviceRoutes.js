@@ -16,6 +16,11 @@ const mongoClient = new MongoClient(uri, {
     }
 });
 
+const UserDB = "UserDB"
+const UserCollection = "users"
+
+const DeviceDB = "DeviceDB"
+//Possible device BugRacket, SmartSwitch
 
 router.post('/device/new-device', async (req, res) => {
     try {
@@ -33,7 +38,7 @@ router.post('/device/new-device', async (req, res) => {
             deviceType,
         };
 
-        const user = await mongoClient.db("UserDB").collection('users').findOne({ name });
+        const user = await mongoClient.db(UserDB).collection(UserCollection).findOne({ name });
         
         if(user) {
             //user exists in our database
@@ -67,7 +72,7 @@ router.post('/device/new-device', async (req, res) => {
 async function handleMacAddress(macAddress, deviceType, name) {
     try {
         // Check if the MAC address already exists in the database
-        const existingEntry = await mongoClient.db("DeviceDB").collection(deviceType).findOne({ macAddress });
+        const existingEntry = await mongoClient.db(DeviceDB).collection(deviceType).findOne({ macAddress });
 
         if (existingEntry) {
             // MAC address exists, return it
@@ -82,7 +87,7 @@ async function handleMacAddress(macAddress, deviceType, name) {
             };
 
             // Insert the new entry into the database
-            await mongoClient.db("DeviceDB").collection(deviceType).insertOne(entry);
+            await mongoClient.db(DeviceDB).collection(deviceType).insertOne(entry);
 
             console.log("New MAC address added");
             return 1;

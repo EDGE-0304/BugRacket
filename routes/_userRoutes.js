@@ -12,6 +12,9 @@ const mongoClient = new MongoClient(uri, {
     }
 });
 
+const UserDB = "UserDB"
+const UserCollection = "users"
+
 router.post('/users/sign-up', async (req, res) => {
     try {
         //Requires email, password, name
@@ -25,7 +28,7 @@ router.post('/users/sign-up', async (req, res) => {
         if(!user.gender) user.gender = "Unknown";
         if(!user.birthday) user.birthday = "Unknown";
 
-        await mongoClient.db("UserDB").collection("users").insertOne(user);
+        await mongoClient.db(UserDB).collection(UserCollection).insertOne(user);
 
         res.status(201).send({ message: 'Account created successfully'});
 
@@ -39,7 +42,7 @@ router.post('/users/login', async (req, res) => {
     try {
         const { name, password } = req.body;
       
-        const user = await mongoClient.db("UserDB").collection('users').findOne({ name });
+        const user = await mongoClient.db(UserDB).collection(UserCollection).findOne({ name });
         if (user && user.password === password) {
             // Login successful
             res.status(200).send({ success: true, message: 'Login successful' });
@@ -60,8 +63,8 @@ const checkValidUser = async (user) => {
     }
     // Check if the email already exists in the database
     try {
-        const existingName = await mongoClient.db("UserDB").collection("users").findOne({ name: user.name });
-        const existingEmail = await mongoClient.db("UserDB").collection("users").findOne({ email: user.email});
+        const existingName = await mongoClient.db(UserDB).collection(UserCollection).findOne({ name: user.name });
+        const existingEmail = await mongoClient.db(UserDB).collection(UserCollection).findOne({ email: user.email});
         if (existingName || existingEmail) {
             console.error('This user already exists.');
             return false;
