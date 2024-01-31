@@ -64,10 +64,41 @@ router.post('/device/new-device', async (req, res) => {
     }
 });
 
+router.get('/device/bugracket/count', async (req, res) => {
+
+    try {
+        
+        let macAddress = req.body;
+
+        console.log('macAddress: ', macAddress);
+
+        const existingmacAddress = await mongoClient.db(DeviceDB).collection(bug-racket).findOne({ macAddress});
+
+        if(existingmacAddress){
+
+            let count =  existingmacAddress.kills.length;
+            console.log("Kill Count:", count);
+            res.status(200).send(`Successfully retrieved kill count: ${count}`);
+
+        }
+
+        else{
+            console.log("Error finding device");
+            res.status(404).send("Error finding device");
+        }
+
+
+
+    } catch (error) {
+        console.log("Error getting count");
+        res.status(500).send("Error getting count");
+    }
+});
+
 async function handleMacAddress(macAddress, deviceType, name) {
     try {
         // Check if the MAC address already exists in the database
-        const existingEntry = await mongoClient.db(DeviceDB).collection(deviceType).findOne({ macAddress });
+        const existingEntry = await mongoClient.db(DeviceDB).collection("deviceType").findOne({ macAddress });
 
         if (existingEntry) {
             // MAC address exists, return it
