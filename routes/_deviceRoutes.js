@@ -177,34 +177,19 @@ router.post('/device/bugracket/new-kill', async (req, res) => {
             res.status(400).send("Unsupported content type");
         }
 
-        //GPT generated code to parse keywords,
-        //matches[0] will store the macAddress, matches[1] will store the time stamp
-        let regex = /\[([^\]]+)\]/g;
-        let matches = [];
-        let currentMatch;
-        while ((currentMatch = regex.exec(match)) !== null) {
-            console.log("In the while loop");
-            matches.push(currentMatch[1]);
-        }
     
-        if(matches.length < 2) {
-            console.log("Invalid input, missing macAddress or timeStamp");
-            return res.status(400).send({ message: "Invalid input, missing macAddress or timeStamp"});
-        }
-    
-        const macAddress = matches[0];
-        const timeStamp = matches[1];
+        const macAddress = match;
     
         const device = await mongoClient.db(DeviceDB).collection(bugracketCollection).findOne({ macAddress });
     
-        if(!matches[0] || !device || device.deviceType != bugracketCollection) {
+        if(!match || !device || device.deviceType != bugracketCollection) {
             console.log("Invalid input, bug racket does not exist or not a bug racket");
             return res.status(400).send({ message: "Invalid input, bug racket does not exist or not a bug racket"});
         }
     
         const updateResult = await mongoClient.db(DeviceDB).collection(bugracketCollection).updateOne(
             { macAddress },
-            { $push: { kills: timeStamp } }
+            { $push: { kills: (new Date()).toString()} }
         );
     
         if (updateResult.modifiedCount === 0) {
