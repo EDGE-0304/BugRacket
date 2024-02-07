@@ -129,7 +129,7 @@ router.get('/device/bugracket/count', async (req, res) => {
     }
 });
 
-router.put('device/bugracket/update-name', async (req, res) => {
+router.put('/device/bugracket/update-name', async (req, res) => {
     try {
         let bugracket = req.body;
 
@@ -174,7 +174,7 @@ router.post('/device/bugracket/new-kill', async (req, res) => {
         if (req.is('text/plain')) {
             match = req.body;
         } else {
-            res.status(400).send("Unsupported content type");
+            return res.status(400).send("Unsupported content type");
         }
 
     
