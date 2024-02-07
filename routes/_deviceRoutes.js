@@ -37,20 +37,25 @@ router.post('/device/new-device', async (req, res) => {
         const user = await mongoClient.db(UserDB).collection(UserCollection).findOne({ name });
         
         if(user) {
+
+            console.log("found user, adding device");
+
             //user exists in our database
             //Add new device into database
             //Ex: macAddress=12345, deviceType=bug-racket, name=FARDREAM
             let status = await handleMacAddress(macAddress, deviceType, name);
 
+            console.log(status);
+
             if(status == 1) {
                 console.log("New MAC address added");
-                res.status(200).send({ message: "New MAC address added", data: device});
+                res.status(200).send({ message: "New MAC address added"});
             } else if (status == 2) {
                 console.log("Device already exists");
-                res.status(200).send({ message: "Device already exists", data: device});
+                res.status(200).send({ message: "Device already exists"});
             } else {
-                console.log("Unknown error uploading device");
-                res.status(500).send({ message: "Unknown error uploading device"});
+                console.log("Unable to handle mac address");
+                res.status(500).send({ message: "Unable to handle mac address"});
             }
             
         } else {
@@ -68,6 +73,9 @@ router.post('/device/new-device', async (req, res) => {
 async function handleMacAddress(macAddress, deviceType, name) {
     try {
         // Check if the MAC address already exists in the database
+
+        console.log("attempting to handle mac address");
+
         const existingEntry = await mongoClient.db(DeviceDB).collection(deviceType).findOne({ macAddress });
 
         if (existingEntry) {
@@ -83,10 +91,12 @@ async function handleMacAddress(macAddress, deviceType, name) {
                 deviceName: deviceType
             };
 
+            console.log(entry);
+
             // Insert the new entry into the database
             await mongoClient.db(DeviceDB).collection(deviceType).insertOne(entry);
 
-            console.log("New MAC address added");
+            console.log("MAC address is handled");
             return 1;
         }
     } catch (error) {
