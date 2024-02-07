@@ -105,7 +105,7 @@ async function handleMacAddress(macAddress, deviceType, name) {
     }
 }
 
-router.get('/device/bugracket/count', async (req, res) => {
+router.post('/device/bugracket/count', async (req, res) => {
     try {
         let macAddress = req.body;
         console.log('macAddress: ', macAddress);
@@ -116,16 +116,16 @@ router.get('/device/bugracket/count', async (req, res) => {
 
             let count =  existingmacAddress.kills.length;
             console.log("Kill Count:", count);
-            res.status(200).send(`Successfully retrieved kill count: ${count}`);
+            return res.status(200).send(`Successfully retrieved kill count: ${count}`);
 
         } else{
             console.log("Error finding device");
-            res.status(404).send("Error finding device");
+            return res.status(404).send("Error finding device");
         }
 
     } catch (error) {
         console.log("Error getting count");
-        res.status(500).send("Error getting count");
+        return res.status(500).send("Error getting count");
     }
 });
 
@@ -199,7 +199,11 @@ router.post('/device/bugracket/new-kill', async (req, res) => {
 
     
         const device = await mongoClient.db(DeviceDB).collection(bugracketCollection).findOne({ macAddress });
-    
+        
+        console.log(matches[0]);
+        console.log(device);
+        consolge.log(device.deviceType);
+
         if(!matches[0] || !device || device.deviceType != bugracketCollection) {
             console.log("Invalid input, bug racket does not exist or not a bug racket");
             return res.status(400).send({ message: "Invalid input, bug racket does not exist or not a bug racket"});
