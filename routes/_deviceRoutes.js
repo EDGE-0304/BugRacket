@@ -143,6 +143,11 @@ router.put('/device/bugracket/update-name', async (req, res) => {
 
         const device = await mongoClient.db(DeviceDB).collection(bugracketCollection).findOne({ macAddress });
 
+        console.log(device);
+        console.log(device.deviceType != bugracketCollection);
+        console.log(device.deviceType);
+        console.log(bugracketCollection);
+
         if(!device || device.deviceType != bugracketCollection) {
             console.log("Invalid input, bug racket does not exist or not a bug racket");
             res.status(400).send({ message: "Invalid input, bug racket does not exist or not a bug racket"});
@@ -177,14 +182,20 @@ router.post('/device/bugracket/new-kill', async (req, res) => {
             return res.status(400).send("Unsupported content type");
         }
 
+        console.log(match);
     
-        const macAddress = match;
-    
+        const macAddress = match.replace(/\s+|\n+/g, '');
+
         const device = await mongoClient.db(DeviceDB).collection(bugracketCollection).findOne({ macAddress });
-    
-        if(!match || !device || device.deviceType != bugracketCollection) {
+
+        console.log(device);
+        console.log(device.deviceType != bugracketCollection);
+        console.log(device.deviceType);
+        console.log(bugracketCollection);
+
+        if(!device || device.deviceType != bugracketCollection) {
             console.log("Invalid input, bug racket does not exist or not a bug racket");
-            return res.status(400).send({ message: "Invalid input, bug racket does not exist or not a bug racket"});
+            res.status(400).send({ message: "Invalid input, bug racket does not exist or not a bug racket"});
         }
     
         const updateResult = await mongoClient.db(DeviceDB).collection(bugracketCollection).updateOne(
