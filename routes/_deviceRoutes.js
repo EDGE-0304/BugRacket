@@ -165,27 +165,31 @@ router.put('device/bugracket/update-name', async (req, res) => {
     }
 })
 
-router.put('device/bugracket/new-kill', async (req, res) => {
+router.post('/device/bugracket/new-kill', async (req, res) => {
     try {
         let match;
+
+        console.log("received new kill request");
 
         if (req.is('text/plain')) {
             match = req.body;
         } else {
             res.status(400).send("Unsupported content type");
         }
-    
+
         //GPT generated code to parse keywords,
         //matches[0] will store the macAddress, matches[1] will store the time stamp
         let regex = /\[([^\]]+)\]/g;
         let matches = [];
-        while ((match = regex.exec(str)) !== null) {
-            matches.push(match[1]);
+        let currentMatch;
+        while ((currentMatch = regex.exec(match)) !== null) {
+            console.log("In the while loop");
+            matches.push(currentMatch[1]);
         }
     
         if(matches.length < 2) {
             console.log("Invalid input, missing macAddress or timeStamp");
-            res.status(400).send({ message: "Invalid input, missing macAddress or timeStamp"});
+            return res.status(400).send({ message: "Invalid input, missing macAddress or timeStamp"});
         }
     
         const macAddress = matches[0];
@@ -195,7 +199,7 @@ router.put('device/bugracket/new-kill', async (req, res) => {
     
         if(!matches[0] || !device || device.deviceType != bugracketCollection) {
             console.log("Invalid input, bug racket does not exist or not a bug racket");
-            res.status(400).send({ message: "Invalid input, bug racket does not exist or not a bug racket"});
+            return res.status(400).send({ message: "Invalid input, bug racket does not exist or not a bug racket"});
         }
     
         const updateResult = await mongoClient.db(DeviceDB).collection(bugracketCollection).updateOne(
@@ -204,13 +208,14 @@ router.put('device/bugracket/new-kill', async (req, res) => {
         );
     
         if (updateResult.modifiedCount === 0) {
-            res.status(200).send({ message: "Nothing updated" });
+            return res.status(200).send({ message: "Nothing updated" });
         }
     
         res.status(200).send({ message: "Bug racket updated successfully" });
         
     } catch (error) {
         console.log("Internal Server Error");
+        console.log(error);
         res.status(500).send("Internal Server Error");
     }
 })
