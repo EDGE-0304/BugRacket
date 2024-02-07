@@ -211,7 +211,7 @@ router.post('/device/bugracket/new-kill', async (req, res) => {
             return res.status(200).send({ message: "Nothing updated" });
         }
     
-        res.status(200).send({ message: "Bug racket updated successfully" });
+        return res.status(200).send({ message: "Bug racket updated successfully" });
         
     } catch (error) {
         console.log("Internal Server Error");
