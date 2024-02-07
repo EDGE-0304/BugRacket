@@ -129,7 +129,7 @@ router.get('/device/bugracket/count', async (req, res) => {
     }
 });
 
-router.put('device/bugracket/update-name', async (req, res) => {
+router.put('/device/bugracket/update-name', async (req, res) => {
     try {
         let bugracket = req.body;
 
@@ -165,31 +165,36 @@ router.put('device/bugracket/update-name', async (req, res) => {
     }
 })
 
-router.put('device/bugracket/new-kill', async (req, res) => {
+router.post('/device/bugracket/new-kill', async (req, res) => {
     try {
         let match;
 
         if (req.is('text/plain')) {
             match = req.body;
         } else {
-            res.status(400).send("Unsupported content type");
+            return res.status(400).send("Unsupported content type");
         }
+
+        console.log(match);
     
         //GPT generated code to parse keywords,
         //matches[0] will store the macAddress, matches[1] will store the time stamp
         let regex = /\[([^\]]+)\]/g;
         let matches = [];
-        while ((match = regex.exec(str)) !== null) {
+        while ((match = regex.exec(match)) !== null) {
             matches.push(match[1]);
         }
     
         if(matches.length < 2) {
             console.log("Invalid input, missing macAddress or timeStamp");
-            res.status(400).send({ message: "Invalid input, missing macAddress or timeStamp"});
+            return res.status(400).send({ message: "Invalid input, missing macAddress or timeStamp"});
         }
     
         const macAddress = matches[0];
         const timeStamp = matches[1];
+
+        console.log(macAddress);
+
     
         const device = await mongoClient.db(DeviceDB).collection(bugracketCollection).findOne({ macAddress });
     
