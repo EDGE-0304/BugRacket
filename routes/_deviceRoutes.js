@@ -105,6 +105,7 @@ async function handleMacAddress(macAddress, deviceType, name) {
     }
 }
 
+//Give back Bug-Racket kill count
 router.post('/device/bugracket/count', async (req, res) => {
     try {
         let match = req.body;
@@ -131,6 +132,7 @@ router.post('/device/bugracket/count', async (req, res) => {
     }
 });
 
+//Renaming Bug-Racket
 router.put('/device/bugracket/update-name', async (req, res) => {
     try {
         let bugracket = req.body;
@@ -172,6 +174,7 @@ router.put('/device/bugracket/update-name', async (req, res) => {
     }
 })
 
+//Adding new-kill from the bug-racket
 router.post('/device/bugracket/new-kill', async (req, res) => {
     try {
         let match;
@@ -186,7 +189,19 @@ router.post('/device/bugracket/new-kill', async (req, res) => {
 
         console.log(match);
     
-        const macAddress = match.replace(/\s+|\n+/g, '');
+        //const macAddress = match.replace(/\s+|\n+/g, '');
+
+        // Assuming the format is "MAC_ADDRESS,TIMESTAMP"
+        const parts = match.split(',');
+        if(parts.length !== 2) {
+            return res.status(400).send("Invalid request format. Expected format: MAC_ADDRESS,TIMESTAMP");
+        }
+
+        const macAddress = parts[0].trim();
+        const timestamp = parts[1].trim();
+
+        console.log(macAddress);
+        console.log(timestamp);
 
         const device = await mongoClient.db(DeviceDB).collection(bugracketCollection).findOne({ macAddress });
 
@@ -202,7 +217,8 @@ router.post('/device/bugracket/new-kill', async (req, res) => {
     
         const updateResult = await mongoClient.db(DeviceDB).collection(bugracketCollection).updateOne(
             { macAddress },
-            { $push: { kills: (new Date()).toString()} }
+            {$push: {kills: timestamp} }
+            // { $push: { kills: (new Date()).toString()} }
         );
     
         if (updateResult.modifiedCount === 0) {
@@ -218,6 +234,7 @@ router.post('/device/bugracket/new-kill', async (req, res) => {
     }
 })
 
+//Testing Mac 
 router.post('/arduino/mac', async (req, res) => {
     try {
         let message;
