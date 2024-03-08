@@ -193,16 +193,21 @@ router.post('/device/bugracket/new-kill', async (req, res) => {
 
         // Assuming the format is "MAC_ADDRESS,TIMESTAMP"
         const parts = match.split(',');
-        if(parts.length !== 2) {
-            return res.status(400).send("Invalid request format. Expected format: MAC_ADDRESS,TIMESTAMP");
+        if(parts.length < 2) {
+            return res.status(400).send("Invalid request format. Expected format: MAC_ADDRESS,TIMESTAMP[,TIMESTAMP...]");
         }
 
         const macAddress = parts[0].trim();
-        const timestamp = parts[1].trim();
+        const timestamps = parts.slice(1).map(timestamp => timestamp.trim());
+
+        // Validate timestamps
+        const areValidTimestamps = timestamps.every(timestamp => !isNaN(new Date(timestamp).getTime()));
+        if (!areValidTimestamps) {
+            return res.status(400).send("One or more timestamps are invalid");
+        }
 
         console.log(macAddress);
-        console.log(timestamp);
-
+       
         const device = await mongoClient.db(DeviceDB).collection(bugracketCollection).findOne({ macAddress });
 
         console.log(device);
@@ -217,7 +222,7 @@ router.post('/device/bugracket/new-kill', async (req, res) => {
     
         const updateResult = await mongoClient.db(DeviceDB).collection(bugracketCollection).updateOne(
             { macAddress },
-            {$push: {kills: timestamp} }
+            { $push: { kills: { $each: timestamps } } }
             // { $push: { kills: (new Date()).toString()} }
         );
     

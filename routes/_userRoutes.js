@@ -20,7 +20,7 @@ router.post('/users/sign-up', async (req, res) => {
         //Requires email, password, name
         const isValidUser = await checkValidUser(req.body);
         if (!isValidUser) {
-            res.status(400).send("Invalid user format or user already exists");
+            res.status(400).send({ message: 'User already exist', error: error.message });
             return;
         }
 
