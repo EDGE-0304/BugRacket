@@ -132,6 +132,38 @@ router.post('/device/bugracket/count', async (req, res) => {
     }
 });
 
+//Give back Bug-Racket all timestamps
+router.post('/device/bugracket/time', async (req, res) => {
+    try {
+        let match = req.body;
+
+        const macAddress = match.replace(/\s+|\n+/g, '');
+        console.log('macAddress: ', macAddress);
+
+        const existingmacAddress = await mongoClient.db(DeviceDB).collection(bugracketCollection).findOne({ macAddress});
+
+        if(existingmacAddress){
+
+            if(Array.isArray(existingDevice.kills)){
+                const timestamps = existingDevice.kills.filter(kill => kill !== null);
+                return res.status(200).json(timestamps);
+            } else {
+                return res.status(404).send("No kill timestamps found for this device.");
+            }
+
+         
+        } else{
+            console.log("Error finding device");
+            return res.status(404).send("Error finding device");
+        }
+
+    } catch (error) {
+        console.log("Error getting time");
+        return res.status(500).send("Error getting getting time");
+    }
+});
+
+
 //Renaming Bug-Racket
 router.put('/device/bugracket/update-name', async (req, res) => {
     try {
@@ -200,11 +232,11 @@ router.post('/device/bugracket/new-kill', async (req, res) => {
         const macAddress = parts[0].trim();
         const timestamps = parts.slice(1).map(timestamp => timestamp.trim());
 
-        // Validate timestamps
-        const areValidTimestamps = timestamps.every(timestamp => !isNaN(new Date(timestamp).getTime()));
-        if (!areValidTimestamps) {
-            return res.status(400).send("One or more timestamps are invalid");
-        }
+        // // Validate timestamps
+        // const areValidTimestamps = timestamps.every(timestamp => !isNaN(new Date(timestamp).getTime()));
+        // if (!areValidTimestamps) {
+        //     return res.status(400).send("One or more timestamps are invalid");
+        // }
 
         console.log(macAddress);
        
